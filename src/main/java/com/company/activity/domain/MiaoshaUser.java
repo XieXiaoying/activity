@@ -14,6 +14,7 @@ public class MiaoshaUser {
     private Long id;
     private String nickname;
     private String password;
+    //salt是用来修改口令散列的随机数据串
     private String salt;
     private String head;
     private Date registerDate;

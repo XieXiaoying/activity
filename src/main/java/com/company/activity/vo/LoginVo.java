@@ -1,12 +1,14 @@
 package com.company.activity.vo;
 
 import com.company.activity.validation.MobileCheck;
-import com.sun.istack.internal.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Length;
+
+import javax.validation.constraints.NotNull;
+
 
 @Setter
 @Getter
