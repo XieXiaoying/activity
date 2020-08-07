@@ -9,7 +9,7 @@ package com.company.activity.common.enums;
  * 4 秒杀错误
  * 5 商品错误
  * 6 订单错误
- * @author qiurunze
+ * @author xiexy
  */
 public enum ResultStatus {
     SUCCESS(0, "成功"),

@@ -1,9 +1,9 @@
 package com.company.activity.controller;
 
-import com.company.activity.common.resultbean.ResultGeekQ;
-import com.company.activity.redis.redismanager.RedisLua;
-import com.company.activity.service.MiaoShaUserService;
-import com.company.activity.vo.LoginVo;
+import com.company.activity.common.resultbean.ResponseResult;
+import com.company.activity.redis.redismanager.RedisScript;
+import com.company.activity.service.UserService;
+import com.company.activity.model.LoginModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,14 +24,12 @@ public class LoginController {
     private static Logger logger = LoggerFactory.getLogger(LoginController.class);
 
     @Autowired
-    private MiaoShaUserService userService;
+    private UserService userService;
 //    @Reference
-    @RequestMapping("/to_login")
+    @RequestMapping("/login")
     public String tologin(Model model) {
-        //logger.info(loginVo.toString());
-        //未完成
-        RedisLua.vistorCount(COUNTLOGIN);
-        String count = RedisLua.getVistorCount(COUNTLOGIN).toString();
+        RedisScript.addCountByUserKey(COUNTLOGIN);
+        String count = RedisScript.getVisitCountByUserKey(COUNTLOGIN).toString();
         logger.info("访问网站的次数为:{}",count);
         model.addAttribute("count",count);
         return "login";
@@ -39,10 +37,10 @@ public class LoginController {
 
     @RequestMapping("/do_login")
     @ResponseBody
-    public ResultGeekQ<Boolean> dologin(HttpServletResponse response, @Valid LoginVo loginVo) {
-        ResultGeekQ<Boolean> result = ResultGeekQ.build();
-        logger.info(loginVo.toString());
-        userService.login(response, loginVo);
+    public ResponseResult<Boolean> dologin(HttpServletResponse response, @Valid LoginModel loginModel) {
+        ResponseResult<Boolean> result = ResponseResult.build();
+        logger.info(loginModel.toString());
+        userService.login(response, loginModel);
         return result;
     }
 

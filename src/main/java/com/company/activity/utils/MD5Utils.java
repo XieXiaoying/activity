@@ -28,14 +28,14 @@ public class MD5Utils {
      * @param salt
      * @return
      */
-    public static  String formPassToDBPass ( String  formPass ,String salt ) {
+    public static  String passToDBPass ( String  formPass ,String salt ) {
         String str = "" + salt.charAt(0) + salt.charAt(2)+ formPass + salt.charAt(5) + salt.charAt(4) ;
         return md5(str);
     }
 
     public static  String inputPassToDBPass ( String  inputPass ,String saltDB ) {
         String formPass = inputPassFormPass(inputPass);
-        String dbPass = formPassToDBPass(formPass ,saltDB ) ;
+        String dbPass = passToDBPass(formPass ,saltDB ) ;
         return dbPass ;
     }
 

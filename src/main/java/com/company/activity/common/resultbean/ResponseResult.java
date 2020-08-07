@@ -4,27 +4,27 @@ import com.company.activity.common.enums.ResultStatus;
 
 import java.io.Serializable;
 
-public class ResultGeekQ<T> extends AbstractResult implements Serializable {
-    private static final long serialVersionUID = 867933019328199779L;
+public class ResponseResult<T> extends BaseResult implements Serializable {
+    private static final long serialVersionUID = 867942019728196379L;
     private T data;
     private Integer count;
 
-    protected ResultGeekQ(ResultStatus status, String message) {
+    protected ResponseResult(ResultStatus status, String message) {
         super(status, message);
     }
-    protected ResultGeekQ(ResultStatus status) {
+    protected ResponseResult(ResultStatus status) {
         super(status);
     }
-    public static <T> ResultGeekQ<T> build() {
-        return new ResultGeekQ(ResultStatus.SUCCESS, (String)null);
+    public static <T> ResponseResult<T> build() {
+        return new ResponseResult(ResultStatus.SUCCESS, (String)null);
     }
 
-    public static <T> ResultGeekQ<T> build(String message) {
-        return new ResultGeekQ(ResultStatus.SUCCESS, message);
+    public static <T> ResponseResult<T> build(String message) {
+        return new ResponseResult(ResultStatus.SUCCESS, message);
     }
 
-    public static <T> ResultGeekQ<T> error(ResultStatus status) {
-        return new ResultGeekQ<T>(status);
+    public static <T> ResponseResult<T> error(ResultStatus status) {
+        return new ResponseResult<T>(status);
     }
 
     public T getData() {

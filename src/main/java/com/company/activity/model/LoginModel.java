@@ -1,4 +1,4 @@
-package com.company.activity.vo;
+package com.company.activity.model;
 
 import com.company.activity.validation.MobileCheck;
 import lombok.AllArgsConstructor;
@@ -14,10 +14,10 @@ import javax.validation.constraints.NotNull;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class LoginVo {
+public class LoginModel {
     @NotNull
     @MobileCheck
-    private String mobile ;
+    private String mobile;
 
     @NotNull
     @Length(min=32)
@@ -25,7 +25,7 @@ public class LoginVo {
 
     @Override
     public String toString() {
-        return "LoginVo{" +
+        return "LoginModel{" +
                 "mobile='" + mobile + '\'' +
                 ", password='" + password + '\'' +
                 '}';

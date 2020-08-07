@@ -16,6 +16,4 @@ public class ValidatorUtil {
         Matcher m = mobile_pattern.matcher(src);
         return m.matches();
     }
-
-
 }

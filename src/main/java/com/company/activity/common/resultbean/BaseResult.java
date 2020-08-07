@@ -2,45 +2,45 @@ package com.company.activity.common.resultbean;
 
 import com.company.activity.common.enums.ResultStatus;
 
-public class AbstractResult {
+public class BaseResult {
     private ResultStatus status;
     private int code;
     private String message;
 
-    protected AbstractResult(ResultStatus status, String message) {
+    protected BaseResult(ResultStatus status, String message) {
         this.code = status.getCode();
         this.status = status;
         this.message = message;
     }
 
-    protected AbstractResult(ResultStatus status) {
+    protected BaseResult(ResultStatus status) {
         this.code = status.getCode();
         this.message = status.getMessage();
         this.status = status;
     }
 
-    public static boolean isSuccess(AbstractResult result) {
+    public static boolean isSuccess(BaseResult result) {
         return result != null && result.status == ResultStatus.SUCCESS && result.getCode() == ResultStatus.SUCCESS.getCode();
     }
 
-    public AbstractResult withError(ResultStatus status) {
+    public BaseResult withError(ResultStatus status) {
         this.status = status;
         return this;
     }
 
-    public AbstractResult withError(String message) {
+    public BaseResult withError(String message) {
         this.status = ResultStatus.SYSTEM_ERROR;
         this.message = message;
         return this;
     }
 
-    public AbstractResult withError(int code, String message) {
+    public BaseResult withError(int code, String message) {
         this.code = code;
         this.message = message;
         return this;
     }
 
-    public AbstractResult success() {
+    public BaseResult success() {
         this.status = ResultStatus.SUCCESS;
         return this;
     }

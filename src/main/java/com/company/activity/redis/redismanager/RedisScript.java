@@ -10,9 +10,9 @@ import java.util.List;
 /**
  * lua脚本使用
  */
-public class RedisLua {
+public class RedisScript {
 
-    private static Logger logger = LoggerFactory.getLogger(RedisLua.class);
+    private static Logger logger = LoggerFactory.getLogger(RedisScript.class);
 
     /**
      * 未完成  需 evalsha更方便 限制ip 或者 手机号访问次数
@@ -21,7 +21,7 @@ public class RedisLua {
 
         Jedis jedis = null;
         try {
-            jedis = RedisManager.getJedis();
+            jedis = RedisFactory.getJedis();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -47,21 +47,18 @@ public class RedisLua {
     /**
      * 统计访问次数
      */
-    public static Object getVistorCount(String key) {
+    public static Object getVisitCountByUserKey(String key) {
 
         Jedis jedis = null;
         Object object = null;
         try {
-            jedis = RedisManager.getJedis();
-
-            String count =
-                    "local num=redis.call('get',KEYS[1]) return num";
+            jedis = RedisFactory.getJedis();
+            String count = "local count = redis.call('get',KEYS[1]) return count";
             List<String> keys = new ArrayList<String>();
             keys.add(key);
             List<String> argves = new ArrayList<String>();
             jedis.auth("1qaz@WSX");
             String luaScript = jedis.scriptLoad(count);
-            System.out.println(luaScript);
             object = jedis.evalsha(luaScript, keys, argves);
         } catch (Exception e) {
             logger.error("统计访问次数失败！！！",e);
@@ -73,20 +70,18 @@ public class RedisLua {
     /**
      * 统计访问次数
      */
-    public static void vistorCount(String key) {
+    public static void addCountByUserKey(String key) {
 
         Jedis jedis = null;
         Object object = null;
         try {
-            jedis = RedisManager.getJedis();
-            String count =
-                    "local num=redis.call('incr',KEYS[1]) return num";
+            jedis = RedisFactory.getJedis();
+            String count = "local count = redis.call('incr',KEYS[1]) return count";
             List<String> keys = new ArrayList<String>();
             keys.add(key);
             List<String> argves = new ArrayList<String>();
             jedis.auth("1qaz@WSX");
             String luaScript = jedis.scriptLoad(count);
-            System.out.println(luaScript);
             jedis.evalsha(luaScript, keys, argves);
         } catch (Exception e) {
             logger.error("统计访问次数失败！！！",e);
