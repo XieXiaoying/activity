@@ -66,7 +66,7 @@ public class ActivityService {
     }
 
 
-    public BufferedImage createVerifyCodeRegister() {
+    public BufferedImage createRegisterVerifyCode() {
         int width = 80;
         int height = 32;
         //create the image

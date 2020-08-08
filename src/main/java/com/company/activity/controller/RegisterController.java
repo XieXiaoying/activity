@@ -1,6 +1,7 @@
 package com.company.activity.controller;
 
 import com.company.activity.common.resultbean.ResponseResult;
+import com.company.activity.domain.User;
 import com.company.activity.service.ActivityService;
 import com.company.activity.service.UserService;
 import org.slf4j.Logger;
@@ -8,10 +9,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletResponse;
+import java.awt.image.BufferedImage;
+import java.io.OutputStream;
+
 import static com.company.activity.common.enums.ResultStatus.*;
 @Controller
 @RequestMapping("/user")
@@ -24,8 +30,8 @@ public class RegisterController {
     @Autowired
     private ActivityService activityService ;
 
-    @RequestMapping("/do_register")
-    public String registerIndex(){
+    @RequestMapping("/register")
+    public String register(){
         return "register";
     }
 
@@ -36,12 +42,13 @@ public class RegisterController {
      * @param salt
      * @return
      */
-    @RequestMapping("/register")
+    @RequestMapping("/to_register")
     @ResponseBody
-    public ResponseResult<String> register(@RequestParam("username") String userName ,
+    public ResponseResult<String> toRegister(@RequestParam("username") String userName ,
                                            @RequestParam("password") String passWord,
                                            @RequestParam("verifyCode") String verifyCode,
-                                           @RequestParam("salt") String salt, HttpServletResponse response ){
+                                           @RequestParam("salt") String salt,
+                                           HttpServletResponse response ){
 
         ResponseResult<String> result = ResponseResult.build();
         /**
@@ -60,4 +67,23 @@ public class RegisterController {
         }
         return result;
     }
+
+    @RequestMapping(value = "/registerVerifyCode", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseResult<String> getRegisterCode(HttpServletResponse response){
+        ResponseResult<String> result = ResponseResult.build();
+        try {
+            BufferedImage image = activityService.createRegisterVerifyCode();
+            OutputStream out = response.getOutputStream();
+            ImageIO.write(image, "JPEG", out);
+            out.flush();
+            out.close();
+            return result;
+        } catch (Exception e) {
+            logger.error("生成验证码错误-----注册:{}", e);
+            result.withError(MIAOSHA_FAIL.getCode(), MIAOSHA_FAIL.getMessage());
+            return result;
+        }
+    }
+
 }

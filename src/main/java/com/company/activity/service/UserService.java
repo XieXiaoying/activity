@@ -90,7 +90,7 @@ public class UserService {
         miaoShaUser.setSalt(salt);
         miaoShaUser.setNickname(userName);
         try {
-            userDao.insertMiaoShaUser(miaoShaUser);
+            userDao.insertUser(miaoShaUser);
             User user = userDao.getByNickname(miaoShaUser.getNickname());
             if(user == null){
                 return false;
