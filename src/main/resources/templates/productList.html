@@ -1,0 +1,51 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>商品列表</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <!-- jquery -->
+    <script type="text/javascript" th:src="@{/js/jquery.min.js}"></script>
+    <!-- bootstrap -->
+    <link rel="stylesheet" type="text/css" th:href="@{/bootstrap/css/bootstrap.min.css}" />
+    <script type="text/javascript" th:src="@{/bootstrap/js/bootstrap.min.js}"></script>
+    <!-- jquery-validator -->
+    <script type="text/javascript" th:src="@{/jquery-validation/jquery.validate.min.js}"></script>
+    <script type="text/javascript" th:src="@{/jquery-validation/localization/messages_zh.min.js}"></script>
+    <!-- layer -->
+    <script type="text/javascript" th:src="@{/layer/layer.js}"></script>
+    <!-- md5.js -->
+    <script type="text/javascript" th:src="@{/js/md5.min.js}"></script>
+    <!-- common.js -->
+    <script type="text/javascript" th:src="@{/js/common.js}"></script>
+</head>
+
+<body>
+
+<div class="panel panel-default">
+    <div class="panel-heading">秒杀商品列表</div>
+    <div  class="panel-heading">
+        <button onclick="messageRegister()">消息中心</button>
+        <input id="userid" th:value="${user.id}"></input>
+    </div>　　
+    <table class="table" id="goodslist">
+        <tr><td>商品名称</td><td>商品图片</td><td>商品原价</td><td>秒杀价</td><td>库存数量</td><td>详情</td></tr>
+        <tr  th:each="product, goodsStat : ${productList}">
+            <td th:text="${product.name}"></td>
+            <td ><img th:src="@{${product.img}}" width="100" height="100" /></td>
+            <td th:text="${product.price}"></td>
+            <td th:text="${product.currentPrice}"></td>
+            <td th:text="${product.stockCount}"></td>
+            <td><a th:href="'/detail.htm?goodsId='+${product.id}">详情</a></td>　　
+        </tr>
+    </table>
+</div>
+</body>
+
+<script>
+    function messageRegister() {
+        var userid = $("#userid").val();
+        window.location.href='/message/list?userid='+userid;
+    }
+
+</script>
+</html>
