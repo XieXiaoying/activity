@@ -1,10 +1,16 @@
 package com.company.activity.service;
 
+import com.company.activity.domain.Order;
+import com.company.activity.domain.OrderInfo;
 import com.company.activity.domain.User;
+import com.company.activity.model.ProductModel;
 import com.company.activity.redis.ActivityKey;
 import com.company.activity.redis.RedisService;
+import com.company.activity.utils.MD5Utils;
+import com.company.activity.utils.UUIDUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -15,6 +21,11 @@ import java.util.Random;
 public class ActivityService {
     @Autowired
     RedisService redisService;
+    @Autowired
+    ProductService productService;
+    @Autowired
+    OrderService orderService;
+
     public BufferedImage createVerifyCode(User user, long goodsId) {
         if(user == null || goodsId <=0) {
             return null;
@@ -122,7 +133,38 @@ public class ActivityService {
         redisService.delete(ActivityKey.getVerifyCode, user.getNickname()+","+goodsId);
         return true;
     }
-
+    public String createActivityPath(User user, long productsId){
+        if(user == null || productsId <=0) {
+            return null;
+        }
+        String str = MD5Utils.md5(UUIDUtil.uuid()+"123456");
+        redisService.set(ActivityKey.getActivityPath, ""+user.getNickname() + "_"+ productsId, str);
+        return str;
+    }
+    public boolean checkPath(User user, long productsId, String path){
+        if(user == null || path == null) {
+            return false;
+        }
+        return redisService.get(ActivityKey.getActivityPath, ""+user.getNickname() + "_"+ productsId, String.class).equals(path);
+    }
+    @Transactional
+    public OrderInfo doComplete(User user, ProductModel product) {
+        //减库存 下订单 写入秒杀订单
+        boolean success = productService.reduceStock(product);
+        if(success){
+            return orderService.createOrder(user, product) ;
+        }else {
+            //如果库存不存在则内存标记为true
+            setProductsOver(product.getId());
+            return null;
+        }
+    }
+    private void setProductsOver(long productsId){
+        redisService.set(ActivityKey.getProductOver, "" + productsId, true);
+    }
+    private boolean getProductsOver(long productsId){
+        return redisService.get(ActivityKey.getProductOver, "" + productsId, boolean.class);
+    }
     private static char[] ops = new char[] {'+', '-', '*'};
     /**
      * + - *
@@ -136,4 +178,18 @@ public class ActivityService {
         String exp = ""+ num1 + op1 + num2 + op2 + num3;
         return exp;
     }
+    public long getResult(Long userId, long productsId) {
+        Order order = orderService.getOrderByUserIdAndProductsId(userId, productsId);
+        if(order != null) {//秒杀成功
+            return order.getOrderId();
+        }else {
+            boolean isOver = getProductsOver(productsId);
+            if(isOver) {
+                return -1;
+            }else {
+                return 0;
+            }
+        }
+    }
+
 }
