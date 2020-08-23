@@ -9,6 +9,7 @@ import com.company.activity.redis.OrderKey;
 import com.company.activity.redis.RedisService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 
@@ -22,6 +23,8 @@ public class OrderService {
     public Order getOrderByUserIdAndProductsId(long userId, long productsId){
         return orderDao.getOrderByUserIdAndProductsId(userId, productsId);
     }
+
+    @Transactional
     public OrderInfo createOrder(User user, ProductModel product){
         OrderInfo orderInfo = new OrderInfo();
         orderInfo.setCreateDate(new Date());
@@ -33,9 +36,9 @@ public class OrderService {
         orderInfo.setProductsPrice(product.getCurrentPrice());
         orderInfo.setProductsName(product.getName());
         orderInfo.setUserId(user.getId());
-        long orderId = orderDao.insertActivityOrder(orderInfo);
+        orderDao.insertActivityOrder(orderInfo);
         Order order = new Order();
-        order.setOrderId(orderId);
+        order.setOrderId(orderInfo.getId());
         order.setProductsId(product.getId());
         order.setUserId(user.getId());
         orderDao.insertOrder(order);

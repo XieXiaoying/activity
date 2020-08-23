@@ -204,6 +204,7 @@ public class RedisService {
         }
         Class<?> clazz = value.getClass();
         if(clazz == int.class || clazz == Integer.class) {
+            System.out.println("integer: " + value);
             return ""+value;
         }else if(clazz == String.class) {
             return (String)value;
@@ -225,7 +226,9 @@ public class RedisService {
             return (T)str;
         }else if(clazz == long.class || clazz == Long.class) {
             return  (T)Long.valueOf(str);
-        }else {
+        }else if(clazz == boolean.class || clazz == Boolean.class){
+            return (T)Boolean.valueOf(str);
+        } else {
             return JSON.toJavaObject(JSON.parseObject(str), clazz);
         }
     }

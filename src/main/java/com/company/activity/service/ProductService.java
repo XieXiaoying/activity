@@ -25,7 +25,7 @@ public class ProductService {
     public boolean reduceStock(ProductModel product) {
         ActivityProduct acProduct = new ActivityProduct();
         acProduct.setProductsId(product.getId());
-        int stock = productDao.reduceStock(product);
+        int stock = productDao.reduceStock(acProduct);
         return stock > 0;
     }
 

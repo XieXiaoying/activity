@@ -23,7 +23,7 @@ public class MQSender {
     public void sendActivityMessage(ActivityMessage mm) {
         String msg = RedisService.beanToString(mm);
         log.info("send message:"+msg);
-        amqpTemplate.convertAndSend(MQConfig.ACTIVITY_QUEUE, msg);
+//        amqpTemplate.convertAndSend(MQConfig.ACTIVITY_QUEUE, msg);
     }
 
     /**

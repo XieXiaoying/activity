@@ -26,8 +26,6 @@ public class ProductController extends PageController {
     @RequestMapping(value="/list", produces="text/html")
     @ResponseBody
     public String list(HttpServletRequest request, HttpServletResponse response, Model model, User user) {
-        System.out.println(user);
-        System.out.println("====");
         model.addAttribute("user", user);
         List<ProductModel> goodsList = productService.getProductList();
         model.addAttribute("productList", goodsList);

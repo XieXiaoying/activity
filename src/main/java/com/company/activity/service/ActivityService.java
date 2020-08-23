@@ -147,11 +147,13 @@ public class ActivityService {
         }
         return redisService.get(ActivityKey.getActivityPath, ""+user.getNickname() + "_"+ productsId, String.class).equals(path);
     }
+
     @Transactional
     public OrderInfo doComplete(User user, ProductModel product) {
         //减库存 下订单 写入秒杀订单
         boolean success = productService.reduceStock(product);
         if(success){
+            System.out.println("xierudingdan");
             return orderService.createOrder(user, product) ;
         }else {
             //如果库存不存在则内存标记为true
@@ -178,10 +180,11 @@ public class ActivityService {
         String exp = ""+ num1 + op1 + num2 + op2 + num3;
         return exp;
     }
-    public long getResult(Long userId, long productsId) {
+    public long getResult(long userId, long productsId) {
         Order order = orderService.getOrderByUserIdAndProductsId(userId, productsId);
+        System.out.println(order);
         if(order != null) {//秒杀成功
-            return order.getOrderId();
+            return order.getId();
         }else {
             boolean isOver = getProductsOver(productsId);
             if(isOver) {

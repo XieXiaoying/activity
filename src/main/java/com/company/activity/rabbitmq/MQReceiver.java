@@ -34,7 +34,7 @@ public class MQReceiver {
     ProductService productService;
 
 
-    @RabbitListener(queues=MQConfig.ACTIVITY_QUEUE)
+//    @RabbitListener(queues=MQConfig.ACTIVITY_QUEUE)
     public void receive(String message) {
         log.info("receive message:"+message);
         ActivityMessage mm = RedisService.stringToBean(message, ActivityMessage.class);
@@ -52,18 +52,12 @@ public class MQReceiver {
             return;
         }
         //减库存 下订单 写入秒杀订单
-        activityService.doComplete(user, product);
+        try{
+            activityService.doComplete(user, product);
+        }catch (Exception e){
+            log.error(e.getCause().getMessage());
+        }
+
     }
-
-
-
-//    @RabbitListener(queues=MQConfig.ACTIVITY_TEST)
-//    public void receiveMiaoShaMessage(Message message, Channel channel) throws IOException {
-//        log.info("接受到的消息为:{}",message);
-//        String messRegister = new String(message.getBody(), "UTF-8");
-//        channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);
-////        MiaoShaMessageVo msm  = RedisService.stringToBean(messRegister, MiaoShaMessageVo.class);
-////        messageService.insertMs(msm);
-//    }
 }
 

@@ -82,22 +82,22 @@ public class UserService {
 
 
     public boolean register(HttpServletResponse response , String userName , String passWord , String salt) {
-        User miaoShaUser =  new User();
-        miaoShaUser.setNickname(userName);
+        User user =  new User();
+        user.setNickname(userName);
         String DBPassWord =  MD5Utils.passToDBPass(passWord , salt);
-        miaoShaUser.setPassword(DBPassWord);
-        miaoShaUser.setRegisterDate(new Date());
-        miaoShaUser.setSalt(salt);
-        miaoShaUser.setNickname(userName);
+        user.setPassword(DBPassWord);
+        user.setRegisterDate(new Date());
+        user.setSalt(salt);
+        user.setNickname(userName);
         try {
-            userDao.insertUser(miaoShaUser);
-            User user = userDao.getByNickname(miaoShaUser.getNickname());
-            if(user == null){
+            userDao.insertUser(user);
+            User tempUser = userDao.getByNickname(user.getNickname());
+            if(tempUser == null){
                 return false;
             }
             //生成cookie 将session返回游览器 分布式session
             String token= UUIDUtil.uuid();
-            addCookie(response, token, user);
+            addCookie(response, token, tempUser);
         } catch (Exception e) {
             logger.error("注册失败",e);
             return false;

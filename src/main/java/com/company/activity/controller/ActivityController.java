@@ -4,14 +4,20 @@ import com.company.activity.access.AccessLimit;
 import com.company.activity.common.resultbean.ResponseResult;
 import com.company.activity.domain.Order;
 import com.company.activity.domain.User;
+import com.company.activity.kafka.KafkaProducer;
+import com.company.activity.model.ProductDetail;
+import com.company.activity.model.ProductModel;
 import com.company.activity.rabbitmq.ActivityMessage;
 import com.company.activity.rabbitmq.MQSender;
+import com.company.activity.redis.ActivityKey;
 import com.company.activity.redis.ProductKey;
 import com.company.activity.redis.RedisService;
 import com.company.activity.service.ActivityService;
 import com.company.activity.service.OrderService;
+import com.company.activity.service.ProductService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -23,11 +29,12 @@ import javax.servlet.http.HttpServletResponse;
 import java.awt.image.BufferedImage;
 import java.io.OutputStream;
 import java.util.HashMap;
+import java.util.List;
 
 import static com.company.activity.common.enums.ResultStatus.*;
 @Controller
 @RequestMapping("/activity")
-public class ActivityController {
+public class ActivityController implements InitializingBean {
     private static Logger logger = LoggerFactory.getLogger(ActivityController.class);
     @Autowired
     ActivityService activityService;
@@ -39,7 +46,11 @@ public class ActivityController {
     RedisService redisService;
 
     @Autowired
-    MQSender mqSender;
+    KafkaProducer kafkaProducer;
+//    MQSender mqSender;
+
+    @Autowired
+    ProductService productService;
 
     private HashMap<Long, Boolean> localOverMap = new HashMap<Long, Boolean>();
 
@@ -67,7 +78,7 @@ public class ActivityController {
         }
     }
 
-    @AccessLimit(seconds = 5, maxCount = 5, needLogin = true)
+    @AccessLimit(seconds = 5, maxCount = 200, needLogin = true)
     @RequestMapping(value = "/path", method = RequestMethod.GET)
     @ResponseBody
     public ResponseResult<String> getActivityPath(HttpServletRequest request,
@@ -91,14 +102,14 @@ public class ActivityController {
         return result;
     }
 
-    @AccessLimit(seconds = 5, maxCount = 5, needLogin = true)
+    @AccessLimit(seconds = 5, maxCount = 200, needLogin = true)
     @RequestMapping(value="/{path}/do_buy", method= RequestMethod.POST)
     @ResponseBody
     public ResponseResult<Integer> ToBuy(Model model,
                                          User user,
                                          @PathVariable("path") String path,
                                          @RequestParam("productsId") long productsId) {
-        System.out.println(user.toString());
+        System.out.println(productsId);
         ResponseResult<Integer> result = ResponseResult.build();
         if (user == null) {
             result.withError(SESSION_ERROR.getCode(), SESSION_ERROR.getMessage());
@@ -126,13 +137,16 @@ public class ActivityController {
             return result;
         }
         //内存标记，减少redis访问
-        boolean over = localOverMap.get(productsId);
+        boolean over = localOverMap.getOrDefault(productsId, false);//.get(productsId) == null ? false : localOverMap.get(productsId);
         if (over) {
             result.withError(MIAO_SHA_OVER.getCode(), MIAO_SHA_OVER.getMessage());
             return result;
         }
         //预见库存
+        System.out.println(redisService.get(ProductKey.productStock, "" + productsId, Long.class));
         Long stock = redisService.decr(ProductKey.productStock, "" + productsId);
+        System.out.println(redisService.get(ProductKey.productStock, "" + productsId, Long.class));
+        System.out.println(stock);
         if (stock < 0) {
             localOverMap.put(productsId, true);
             result.withError(MIAO_SHA_OVER.getCode(), MIAO_SHA_OVER.getMessage());
@@ -141,7 +155,7 @@ public class ActivityController {
         ActivityMessage message = new ActivityMessage();
         message.setProductsId(productsId);
         message.setUser(user);
-        mqSender.sendActivityMessage(message);
+        kafkaProducer.sendActivityMessage(message);
         return result;
     }
     /**
@@ -149,21 +163,41 @@ public class ActivityController {
      * -1：秒杀失败
      * 0： 排队中
      */
-    @AccessLimit(seconds = 5, maxCount = 5, needLogin = true)
+    @AccessLimit(seconds = 5, maxCount = 200, needLogin = true)
     @RequestMapping(value = "/result", method = RequestMethod.GET)
     @ResponseBody
     public ResponseResult<Long> result(Model model,
                                        User user,
-                                       @RequestParam("goodsId") long goodsId) {
+                                       @RequestParam("productsId") long productsId) {
         ResponseResult<Long> result = ResponseResult.build();
         if (user == null) {
             result.withError(SESSION_ERROR.getCode(), SESSION_ERROR.getMessage());
             return result;
         }
         model.addAttribute("user", user);
-        Long miaoshaResult = activityService.getResult(Long.valueOf(user.getNickname()), goodsId);
-        result.setData(miaoshaResult);
+        System.out.println(Long.valueOf(user.getNickname()));
+        long ProductResult = activityService.getResult(user.getId(), productsId);
+        result.setData(ProductResult);
         return result;
     }
-
+    /**
+     * 系统初始化
+     *
+     * @throws Exception
+     */
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        List<ProductModel> productsList = productService.getProductList();
+        if (productsList == null) {
+            return;
+        }
+        System.out.println("init: ");
+        for (ProductModel product : productsList) {
+            System.out.println(product.getId() + " " + product.getStockCount());
+            redisService.set(ProductKey.productStock, "" + product.getId(), product.getStockCount());
+            localOverMap.put(product.getId(), false);
+            redisService.set(ActivityKey.getProductOver, "" + product.getId(), false);
+        }
+        System.out.println("test");
+    }
 }
